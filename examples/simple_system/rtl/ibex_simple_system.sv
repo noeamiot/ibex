@@ -60,13 +60,12 @@ module ibex_simple_system (
     CoreD
   } bus_host_e;
 
-  typedef enum logic[1:0] {
+  typedef enum logic[0:0] {
     Ram,
-    SimCtrl,
     Timer
   } bus_device_e;
 
-  localparam int NrDevices = 3;
+  localparam int NrDevices = 2;
   localparam int NrHosts = 1;
 
   // interrupts
@@ -101,8 +100,6 @@ module ibex_simple_system (
   logic [31:0] cfg_device_addr_mask [NrDevices];
   assign cfg_device_addr_base[Ram] = 32'h100000;
   assign cfg_device_addr_mask[Ram] = ~32'hFFFFF; // 1 MB
-  assign cfg_device_addr_base[SimCtrl] = 32'h20000;
-  assign cfg_device_addr_mask[SimCtrl] = ~32'h3FF; // 1 kB
   assign cfg_device_addr_base[Timer] = 32'h30000;
   assign cfg_device_addr_mask[Timer] = ~32'h3FF; // 1 kB
 
@@ -122,7 +119,6 @@ module ibex_simple_system (
 
   // Tie-off unused error signals
   assign device_err[Ram] = 1'b0;
-  assign device_err[SimCtrl] = 1'b0;
 
   bus #(
     .NrDevices    ( NrDevices ),
@@ -253,21 +249,6 @@ module ibex_simple_system (
       .b_wdata_i   (32'b0),
       .b_rvalid_o  (instr_rvalid),
       .b_rdata_o   (instr_rdata)
-    );
-
-  simulator_ctrl #(
-    .LogName("ibex_simple_system.log")
-    ) u_simulator_ctrl (
-      .clk_i     (clk_sys),
-      .rst_ni    (rst_sys_n),
-
-      .req_i     (device_req[SimCtrl]),
-      .we_i      (device_we[SimCtrl]),
-      .be_i      (device_be[SimCtrl]),
-      .addr_i    (device_addr[SimCtrl]),
-      .wdata_i   (device_wdata[SimCtrl]),
-      .rvalid_o  (device_rvalid[SimCtrl]),
-      .rdata_o   (device_rdata[SimCtrl])
     );
 
   timer #(
