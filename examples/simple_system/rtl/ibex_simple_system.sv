@@ -117,20 +117,8 @@ module ibex_simple_system (
   assign instr_gnt = instr_req;
   assign instr_err = '0;
 
-  `ifdef VERILATOR
-    assign clk_sys = IO_CLK;
-    assign rst_sys_n = IO_RST_N;
-  `else
-    initial begin
-      rst_sys_n = 1'b0;
-      #8
-      rst_sys_n = 1'b1;
-    end
-    always begin
-      #1 clk_sys = 1'b0;
-      #1 clk_sys = 1'b1;
-    end
-  `endif
+  assign clk_sys = IO_CLK;
+  assign rst_sys_n = IO_RST_N;
 
   // Tie-off unused error signals
   assign device_err[Ram] = 1'b0;
@@ -186,31 +174,13 @@ module ibex_simple_system (
     assign instr_rdata_intg = '0;
   end
 
-  ibex_top_tracing #(
-      .SecureIbex      ( SecureIbex       ),
-      .ICacheScramble  ( ICacheScramble   ),
-      .PMPEnable       ( PMPEnable        ),
-      .PMPGranularity  ( PMPGranularity   ),
-      .PMPNumRegions   ( PMPNumRegions    ),
-      .MHPMCounterNum  ( MHPMCounterNum   ),
-      .MHPMCounterWidth( MHPMCounterWidth ),
-      .RV32E           ( RV32E            ),
-      .RV32M           ( RV32M            ),
-      .RV32B           ( RV32B            ),
-      .RegFile         ( RegFile          ),
-      .BranchTargetALU ( BranchTargetALU  ),
-      .ICache          ( ICache           ),
-      .ICacheECC       ( ICacheECC        ),
-      .WritebackStage  ( WritebackStage   ),
-      .BranchPredictor ( BranchPredictor  ),
-      .DbgTriggerEn    ( DbgTriggerEn     ),
-      .DmHaltAddr      ( 32'h00100000     ),
-      .DmExceptionAddr ( 32'h00100000     )
-    ) u_top (
+  // Use default top parameters to ease bottom up synthesis
+  // Enable passtrhough test clock gating
+  ibex_top u_top (
       .clk_i                  (clk_sys),
       .rst_ni                 (rst_sys_n),
 
-      .test_en_i              (1'b0),
+      .test_en_i              (1'b1),
       .scan_rst_ni            (1'b1),
       .ram_cfg_i              (prim_ram_1p_pkg::RAM_1P_CFG_DEFAULT),
 
@@ -317,17 +287,4 @@ module ibex_simple_system (
       .timer_err_o    (device_err[Timer]),
       .timer_intr_o   (timer_irq)
     );
-
-  export "DPI-C" function mhpmcounter_num;
-
-  function automatic int unsigned mhpmcounter_num();
-    return u_top.u_ibex_top.u_ibex_core.cs_registers_i.MHPMCounterNum;
-  endfunction
-
-  export "DPI-C" function mhpmcounter_get;
-
-  function automatic longint unsigned mhpmcounter_get(int index);
-    return u_top.u_ibex_top.u_ibex_core.cs_registers_i.mhpmcounter[index];
-  endfunction
-
 endmodule
