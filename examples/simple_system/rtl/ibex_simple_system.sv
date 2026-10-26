@@ -32,7 +32,14 @@
 
 module ibex_simple_system (
   input IO_CLK,
-  input IO_RST_N
+  input IO_RST_N,
+  output instr_req_o,
+  output [31:0] instr_addr_o,
+  output data_req_o,
+  output data_we_o,
+  output [ 3:0] data_be_o,
+  output [31:0] data_addr_o,
+  output [31:0] data_wdata_o
 );
 
   parameter bit                 SecureIbex               = 1'b0;
@@ -244,4 +251,12 @@ module ibex_simple_system (
       .b_rvalid_o  (instr_rvalid),
       .b_rdata_o   (instr_rdata)
     );
+
+  logic instr_req_o            = instr_req;
+  logic [31:0] instr_addr_o    = instr_addr;
+  logic data_req_o             = host_req[CoreD];
+  logic data_we_o              = host_we[CoreD];
+  logic [ 3:0] data_be_o       = host_be[CoreD];
+  logic [31:0] data_addr_o     = host_addr[CoreD];
+  logic [31:0] data_wdata_o    = host_wdata[CoreD];
 endmodule
